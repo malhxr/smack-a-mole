@@ -2,90 +2,85 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Smack A Mole!</title>
-  <link href='https://fonts.googleapis.com/css?family=Amatic+SC:400,700' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" href="style.css">
+  <title>Speech Detection</title>
 </head>
 <body>
 
-  <h1>Smack-a-mole! <span class="score">0</span></h1>
-  <div class="start_btn">
-    <button onClick="startGame() ">Start!</button>
-  </div>
-  
-
-  <div class="game">
-    <div class="hole hole1">
-      <div class="mole"></div>
-    </div>
-    <div class="hole hole2">
-      <div class="mole"></div>
-    </div>
-    <div class="hole hole3">
-      <div class="mole"></div>
-    </div>
-    <div class="hole hole4">
-      <div class="mole"></div>
-    </div>
-    <div class="hole hole5">
-      <div class="mole"></div>
-    </div>
-    <div class="hole hole6">
-      <div class="mole"></div>
-    </div>
+  <div class="words" contenteditable>
   </div>
 
 <script>
-  const holes = document.querySelectorAll('.hole');
-  const scoreBoard = document.querySelector('.score');
-  const moles = document.querySelectorAll('.mole');
-  let lastHole;
-  let timeUp = false;
-  let score = 0;
+  window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  function randomTime(min, max) {
-    return Math.round(Math.random() * (max - min) + min);
-  }
+  const recognition = new SpeechRecognition();
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  
+  let p = document.createElement('p');
+  const words = document.querySelector('.words');
+  words.appendChild(p);
 
-  function randomHole(holes) {
-    const idx = Math.floor(Math.random() * holes.length);
-    const hole = holes[idx];
-    if (hole === lastHole) {
-      console.log('Ah nah thats the same one bud');
-      return randomHole(holes);
-    }
-    lastHole = hole;
-    return hole;
-  }
+  recognition.addEventListener('result', e => {
+    const transcript = Array.from(e.results)
+      .map(result => result[0])
+      .map(result => result.transcript)
+      .join('');
 
-  function peep() {
-    const time = randomTime(200, 1000);
-    const hole = randomHole(holes);
-    hole.classList.add('up');
-    setTimeout(() => {
-      hole.classList.remove('up');
-      if (!timeUp) peep();
-    }, time);
-  }
 
-  function startGame() {
-    scoreBoard.textContent = 0;
-    timeUp = false;
-    score = 0;
-    peep();
-    setTimeout(() => timeUp = true, 10000)
-    
-  }
+      p.textContent = transcript;
+      if (e.results[0].isFinal) {
+        p = document.createElement('p');
+        words.appendChild(p);
+      }
+  });
 
-  function bonk(e) {
-    if(!e.isTrusted) return; // cheater!
-    score++;
-    this.parentNode.classList.remove('up');
-    scoreBoard.textContent = score;
-  }
+  recognition.addEventListener('end', recognition.start);
 
-  moles.forEach(mole => mole.addEventListener('click', bonk));
+  recognition.start();
 
 </script>
+
+
+  <style>
+    html {
+      font-size: 10px;
+    }
+
+    body {
+      background: rgba(123, 0, 255, 0.953);
+      font-family: 'helvetica neue';
+      font-weight: 200;
+      font-size: 20px;
+    }
+
+    .words {
+      max-width: 500px;
+      margin: 50px auto;
+      background: white;
+      border-radius: 5px;
+      box-shadow: 10px 10px 0 rgba(0,0,0,0.1);
+      padding: 1rem 2rem 1rem 5rem;
+      background: -webkit-gradient(linear, 0 0, 0 100%, from(#d9eaf3), color-stop(4%, #fff)) 0 4px;
+      background-size: 100% 3rem;
+      position: relative;
+      line-height: 3rem;
+    }
+    
+    p {
+      margin: 0 0 3rem;
+    }
+
+    .words:before {
+      content: '';
+      position: absolute;
+      width: 4px;
+      top: 0;
+      left: 30px;
+      bottom: 0;
+      border: 1px solid;
+      border-color: transparent #efe4e4;
+    }
+  </style>
+
 </body>
 </html>
